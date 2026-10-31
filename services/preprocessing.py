@@ -1,9 +1,22 @@
 """Image preprocessing. Not wired into the API yet, see docs/preprocessing.md."""
 import cv2
+from cv2.typing import MatLike
 import numpy as np
 
 
 class PreprocessingService:
+    def cleanup_image(self, img: MatLike) -> MatLike:
+        """Remove noise, shadows, and other artifacts from the image."""
+        # 1. Make the image gray if it isn't already.
+        if len(img.shape) == 3 and img.shape[2] == 3:
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = img
+        # 2. Binarize: ink = 255, paper = 0. Adaptive threshold copes with shading/uneven scans.
+        return cv2.adaptiveThreshold(
+            gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 25, 15
+        )
+    
     def estimate_skew(self, gray: np.ndarray, max_angle: float = 15) -> float:
         """Median angle of long, near-horizontal lines (forms are full of table rules)."""
         scale = min(1.0, 1200 / gray.shape[1])                    # estimate on a smaller copy: much faster

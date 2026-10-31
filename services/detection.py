@@ -1,21 +1,15 @@
 import cv2
+from cv2.typing import MatLike
 import numpy as np
 
 CONTOUR_AREA_THRESHOLD = 0.85  # square corners, not a round letter hole
 
-def find_candidates(gray):
-    # 1. Binarize: ink = 255, paper = 0. Adaptive threshold copes with shading/uneven scans.
-    binary = cv2.adaptiveThreshold(
-        gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 25, 15
-    )
-
-    # 2. Find all contours (RETR_LIST: also inner contours of boxes inside table cells).
-    contours, _ = cv2.findContours(binary, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
-    h_img, w_img = gray.shape
+def find_candidates(binary: MatLike) -> list[tuple[int, int, int, int]]:
+    h_img, w_img = binary.shape
     # tbh this is a bit of a hack, but for now it works. 
     min_side = max(8, int(0.006 * w_img))   # size limits relative to page width
     max_side = int(0.03 * w_img)
+    contours, _ = cv2.findContours(binary, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
     boxes = []
     for c in contours:
@@ -58,9 +52,9 @@ def dedupe(boxes, thr=0.5):
 
 
 class DetectionService:
-    def find_checkboxes(self, gray: np.ndarray) -> list[list[int]]:
+    def find_checkboxes(self, binary: MatLike) -> list[list[int]]:
         """Return checkbox bounding boxes as [x, y, w, h] (same convention as COCO and the API)."""
-        return [[x1, y1, x2 - x1, y2 - y1] for x1, y1, x2, y2 in find_candidates(gray)]
+        return [[x1, y1, x2 - x1, y2 - y1] for x1, y1, x2, y2 in find_candidates(binary)]
 
 
 def get_detection_service() -> DetectionService:
