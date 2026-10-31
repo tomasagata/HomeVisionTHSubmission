@@ -150,3 +150,4 @@ class ClassificationResult:
 class Report:
     detection: dict[str, DetectionResult] = field(default_factory=dict)
     classification: dict[str, ClassificationResult] = field(default_factory=dict)
+    own_classification: dict[str, ClassificationResult] = field(default_factory=dict)

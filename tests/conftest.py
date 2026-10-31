@@ -58,11 +58,12 @@ def pytest_terminal_summary(terminalreporter, config):
         lambda name, r: f"{name:32} {r.n_gt:5} {r.n_pred:5} {r.tp:5} "
                         f"{fmt(r.precision):>6} {fmt(r.recall):>6} {fmt(r.f1):>6}",
     )
-    print_table(
-        terminalreporter,
-        "checkbox classification (ground-truth boxes, ambiguous excluded, positive = checked)",
-        f"{'sample':32} {'n':>5} {'acc':>6} {'prec':>6} {'recall':>6} {'TP':>5} {'FP':>5} {'FN':>5} {'TN':>5}",
-        report.classification,
-        lambda name, r: f"{name:32} {r.n:5} {fmt(r.accuracy):>6} {fmt(r.precision):>6} {fmt(r.recall):>6} "
-                        f"{r.tp:5} {r.fp:5} {r.fn:5} {r.tn:5}",
-    )
+    for name, results in [("pretrained", report.classification), ("own", report.own_classification)]:
+        print_table(
+            terminalreporter,
+            f"{name} checkbox classification (ground-truth boxes, ambiguous excluded, positive = checked)",
+            f"{'sample':32} {'n':>5} {'acc':>6} {'prec':>6} {'recall':>6} {'TP':>5} {'FP':>5} {'FN':>5} {'TN':>5}",
+            results,
+            lambda name, r: f"{name:32} {r.n:5} {fmt(r.accuracy):>6} {fmt(r.precision):>6} {fmt(r.recall):>6} "
+                            f"{r.tp:5} {r.fp:5} {r.fn:5} {r.tn:5}",
+        )

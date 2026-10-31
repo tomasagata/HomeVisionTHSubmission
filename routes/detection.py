@@ -5,7 +5,7 @@ import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
 from schemas.checkbox import Checkbox
-from services.classifier import ClassifierService, get_classifier_service
+from services.classifier_wendys import WendysCheckboxClassifierService, get_classifier_service
 from services.detection import DetectionService, get_detection_service
 
 router = APIRouter()
@@ -14,7 +14,7 @@ router = APIRouter()
 async def detect_checkboxes(
     image: UploadFile,
     detection_service: Annotated[DetectionService, Depends(get_detection_service)],
-    classifier_service: Annotated[ClassifierService, Depends(get_classifier_service)]
+    classifier_service: Annotated[WendysCheckboxClassifierService, Depends(get_classifier_service)]
 ) -> list[Checkbox]:
     gray = cv2.imdecode(np.frombuffer(await image.read(), np.uint8), cv2.IMREAD_GRAYSCALE)
     if gray is None:

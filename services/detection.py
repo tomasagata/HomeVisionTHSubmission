@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+CONTOUR_AREA_THRESHOLD = 0.85  # square corners, not a round letter hole
 
 def find_candidates(gray):
     # 1. Binarize: ink = 255, paper = 0. Adaptive threshold copes with shading/uneven scans.
@@ -26,7 +27,7 @@ def find_candidates(gray):
         approx = cv2.approxPolyDP(c, 0.1 * cv2.arcLength(c, True), True)
         if len(approx) != 4:                           # four corners
             continue
-        if cv2.contourArea(c) / (w * h) < 0.85:        # square corners, not a round letter hole
+        if cv2.contourArea(c) / (w * h) < CONTOUR_AREA_THRESHOLD:        # square corners, not a round letter hole
             continue
         boxes.append((x, y, x + w, y + h))
     return dedupe(boxes)

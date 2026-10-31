@@ -7,8 +7,10 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.162.0",
     "numpy>=2.5.4",
-    "opencv-python-headless>=5.0.0.93",
+    "opencv-python>=5.0.0.93",
+    "pillow>=13.0.0",
     "python-multipart>=0.0.32",
+    "transformers[torch]>=5.22.1",
 ]
 
 [dependency-groups]
