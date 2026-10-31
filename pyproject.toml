@@ -1,11 +1,21 @@
 [project]
 name = "homevisionthsubmission"
 version = "0.1.0"
-description = "Add your description here"
+description = "Detect checkboxes in document images and classify them as checked or unchecked"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "fastapi>=0.162.0",
+    "fastapi[standard]>=0.162.0",
+    "numpy>=2.5.4",
     "opencv-python-headless>=5.0.0.93",
     "python-multipart>=0.0.32",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
