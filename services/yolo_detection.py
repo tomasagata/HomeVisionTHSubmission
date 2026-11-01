@@ -18,9 +18,17 @@ class DetectionService:
     def find_checkboxes(self, gray: MatLike) -> list[list[int]]:
         """Return checkbox bounding boxes as [x, y, w, h] (same convention as COCO and the API).
 
-        Takes the grayscale page, not the binarized one: the model was trained on raw scans."""
+        Takes the grayscale page, not the binarized one: the model was trained on raw scans.
+
+        Pages larger than IMGSZ are shrunk here with INTER_AREA. Ultralytics would shrink them with INTER_LINEAR,
+        which aliases on full-resolution scans (~3x) and breaks the thin checkbox borders."""
+        height, width = gray.shape
+        scale = min(1.0, IMGSZ / max(height, width))
+        if scale < 1:
+            gray = cv2.resize(gray, (round(width * scale), round(height * scale)), interpolation=cv2.INTER_AREA)
         result = self.model.predict(cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR), imgsz=IMGSZ, conf=CONF, verbose=False)[0]
-        return [[round(x1), round(y1), round(x2 - x1), round(y2 - y1)] for x1, y1, x2, y2 in result.boxes.xyxy.tolist()]
+        return [[round(x1 / scale), round(y1 / scale), round((x2 - x1) / scale), round((y2 - y1) / scale)]
+                for x1, y1, x2, y2 in result.boxes.xyxy.tolist()]
 
 
 @cache  # load the weights once per process, not on every request
