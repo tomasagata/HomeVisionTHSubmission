@@ -31,8 +31,8 @@ services/
   preprocessing.py      deskewing, not wired to the API yet (see docs/preprocessing.md)
 models/                 trained weights for the own CNN
 cnn.ipynb               training and test-split evaluation for the own CNN
-data/                   labelled test images, one folder per dataset (see data/README.md)
 tests/                  accuracy tests for detection and classification
+  data/                   labelled test images, one folder per dataset (see test/data/README.md)
 docs/                   design notes
 ```
 
@@ -46,7 +46,7 @@ uv run pytest                     # accuracy report
 
 ## Testing
 
-The tests are built around labelled data rather than hand-written assertions. Every folder under `data/` with an `annotations.json` is picked up automatically, and each image becomes its own test case. That way adding a new dataset (skewed scans, low-res photos, …) needs no test code changes.
+The tests are built around labelled data rather than hand-written assertions. Every folder under `test/data/` with an `annotations.json` is picked up automatically, and each image becomes its own test case. That way adding a new dataset (skewed scans, low-res photos, …) needs no test code changes.
 
 The suites are report-only on purpose. A test fails only if the data is broken or the pipeline crashes. The actual numbers are printed in a summary table at the end of the run, per image and per dataset:
 

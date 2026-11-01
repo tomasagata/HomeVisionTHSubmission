@@ -14,5 +14,8 @@ wheels/
 *.zip
 datasets/
 
+# Weights and checkpoints
+weights/
+
 # Ultralytics training runs
 runs/
