@@ -8,7 +8,7 @@ import numpy as np
 
 from services.detection import iou
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+DATA_DIR = Path(__file__).resolve().parent / "data"
 IOU_THRESHOLD = 0.5
 
 # Category names as exported by Label Studio.
