@@ -50,14 +50,15 @@ def print_table(tr, title, header, results, row):
 
 def pytest_terminal_summary(terminalreporter, config):
     report = config.stash[REPORT_KEY]
-    print_table(
-        terminalreporter,
-        f"checkbox detection (IoU >= {IOU_THRESHOLD})",
-        f"{'sample':32} {'GT':>5} {'pred':>5} {'TP':>5} {'prec':>6} {'recall':>6} {'F1':>6}",
-        report.detection,
-        lambda name, r: f"{name:32} {r.n_gt:5} {r.n_pred:5} {r.tp:5} "
-                        f"{fmt(r.precision):>6} {fmt(r.recall):>6} {fmt(r.f1):>6}",
-    )
+    for name, results in [("opencv", report.detection), ("yolo", report.yolo_detection)]:
+        print_table(
+            terminalreporter,
+            f"{name} checkbox detection (IoU >= {IOU_THRESHOLD})",
+            f"{'sample':32} {'GT':>5} {'pred':>5} {'TP':>5} {'prec':>6} {'recall':>6} {'F1':>6}",
+            results,
+            lambda name, r: f"{name:32} {r.n_gt:5} {r.n_pred:5} {r.tp:5} "
+                            f"{fmt(r.precision):>6} {fmt(r.recall):>6} {fmt(r.f1):>6}",
+        )
     for name, results in [("pretrained", report.classification), ("own", report.own_classification)]:
         print_table(
             terminalreporter,

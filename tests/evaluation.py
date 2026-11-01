@@ -66,19 +66,24 @@ def xyxy(bbox):
     return (x, y, x + w, y + h)
 
 
-def match(preds, truths, thr=IOU_THRESHOLD) -> int:
-    """Greedy one-to-one matching of [x, y, w, h] boxes: each truth can be claimed by at most one prediction."""
+def match_pairs(preds, truths, thr=IOU_THRESHOLD) -> list[tuple[int, int]]:
+    """Greedy one-to-one matching of [x, y, w, h] boxes: each truth can be claimed by at most one prediction.
+    Returns (prediction index, truth index) pairs."""
     truths = [xyxy(t) for t in truths]
-    used, matched = set(), 0
-    for p in map(xyxy, preds):
+    used, pairs = set(), []
+    for p_i, p in enumerate(map(xyxy, preds)):
         best, best_i = 0.0, None
         for i, t in enumerate(truths):
             if i not in used and (score := iou(p, t)) > best:
                 best, best_i = score, i
         if best >= thr:
             used.add(best_i)
-            matched += 1
-    return matched
+            pairs.append((p_i, best_i))
+    return pairs
+
+
+def match(preds, truths, thr=IOU_THRESHOLD) -> int:
+    return len(match_pairs(preds, truths, thr))
 
 
 def ratio(num, den):
@@ -149,5 +154,6 @@ class ClassificationResult:
 @dataclass
 class Report:
     detection: dict[str, DetectionResult] = field(default_factory=dict)
+    yolo_detection: dict[str, DetectionResult] = field(default_factory=dict)
     classification: dict[str, ClassificationResult] = field(default_factory=dict)
     own_classification: dict[str, ClassificationResult] = field(default_factory=dict)

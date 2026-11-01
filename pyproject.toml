@@ -11,14 +11,15 @@ dependencies = [
     "pillow>=13.0.0",
     "python-multipart>=0.0.32",
     "transformers[torch]>=5.22.1",
+    "ultralytics>=8.4.197",
 ]
 
 [dependency-groups]
 dev = [
     "datasets>=5.1.0",
+    "ipykernel>=7.4.0",
     "pytest>=9.2.0",
     "torchvision>=0.29.2",
-    "ultralytics>=8.4.196",
 ]
 
 [tool.pytest.ini_options]
