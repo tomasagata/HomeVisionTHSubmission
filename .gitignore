@@ -12,3 +12,7 @@ wheels/
 
 # Data files
 *.zip
+datasets/
+
+# Ultralytics training runs
+runs/
