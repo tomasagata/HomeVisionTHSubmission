@@ -3,6 +3,8 @@ import cv2
 from cv2.typing import MatLike
 import numpy as np
 
+from services.detection import min_checkbox_side
+
 
 class PreprocessingService:
     def cleanup_image(self, img: MatLike) -> MatLike:
@@ -13,10 +15,12 @@ class PreprocessingService:
         else:
             gray = img
         # 2. Binarize: ink = 255, paper = 0. Adaptive threshold copes with shading/uneven scans.
-        return cv2.adaptiveThreshold(
+        binary = cv2.adaptiveThreshold(
             gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 25, 15
         )
-    
+        return binary
+
+
     def estimate_skew(self, gray: np.ndarray, max_angle: float = 15) -> float:
         """Median angle of long, near-horizontal lines (forms are full of table rules)."""
         scale = min(1.0, 1200 / gray.shape[1])                    # estimate on a smaller copy: much faster

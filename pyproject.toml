@@ -15,7 +15,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "datasets>=5.1.0",
     "pytest>=9.2.0",
+    "torchvision>=0.29.2",
 ]
 
 [tool.pytest.ini_options]

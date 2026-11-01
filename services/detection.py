@@ -3,35 +3,42 @@ from cv2.typing import MatLike
 import numpy as np
 
 CONTOUR_AREA_THRESHOLD = 0.85  # square corners, not a round letter hole
+ASPECT_RATIO_THRESHOLD = 16/10 # more or less square, not a long rectangle
 
 def find_candidates(binary: MatLike) -> list[tuple[int, int, int, int]]:
     h_img, w_img = binary.shape
-    # tbh this is a bit of a hack, but for now it works. 
-    min_side = max(8, int(0.006 * w_img))   # size limits relative to page width
-    max_side = int(0.03 * w_img)
     contours, _ = cv2.findContours(binary, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
     boxes = []
     for c in contours:
         x, y, w, h = cv2.boundingRect(c)
-        if not checkbox_sized(min_side, max_side, w, h):
+        if not checkbox_sized(h_img, w_img, w, h):
             continue
         if not square_shaped(w, h):
             continue
-        approx = cv2.approxPolyDP(c, 0.1 * cv2.arcLength(c, True), True)
-        if len(approx) != 4:                           # four corners
-            continue
-        if cv2.contourArea(c) / (w * h) < CONTOUR_AREA_THRESHOLD:        # square corners, not a round letter hole
+        if fill_ratio(c, w, h) < CONTOUR_AREA_THRESHOLD:
             continue
         boxes.append((x, y, x + w, y + h))
     return dedupe(boxes)
 
+def fill_ratio(c, w, h):
+    # A regular checkbox is a square or rectangle.
+    # So the area inside the contour should be close to the
+    # area of a regular perfect rectangle of the same width and height.
+    # Here it's divided by (w-1)*(h-1) because the contour is 1 pixel wide,
+    # so the area of an equivalent rectangle is (w-1)*(h-1).
+    return cv2.contourArea(c) / ((w-1) * (h-1))
+
 def square_shaped(w, h):
-    return 0.8 <= w / h <= 1.25
+    return 1/ASPECT_RATIO_THRESHOLD <= w / h <= ASPECT_RATIO_THRESHOLD
+    
+def min_checkbox_side(w_img):
+    # tbh this is a bit of a hack, but for now it works.
+    return max(8, int(0.006 * w_img))   # size limits relative to page width
 
-def checkbox_sized(min_side, max_side, w, h):
+def checkbox_sized(h_img, w_img, w, h):
+    min_side = min_checkbox_side(w_img)
+    max_side = int(0.03 * w_img)
     return min_side <= w <= max_side and min_side <= h <= max_side
-
 
 def iou(a, b):
     ix = max(0, min(a[2], b[2]) - max(a[0], b[0]))
