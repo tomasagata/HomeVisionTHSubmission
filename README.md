@@ -21,9 +21,8 @@ POST /detect   (multipart/form-data, field "image")
 
 ### Try it online!
 
-A hosted version is available
- * frontend: http://54.242.163.45:4173/ <- this one has a cool UI :)
- * backend: http://54.242.163.45:8000/
+A hosted version is available here: http://54.242.163.45:4173/
+If you only want to test out the backend, you can reach it out here: http://54.242.163.45:8000/
 
 You can try out online by cloning this repo and then doing a curl with
 

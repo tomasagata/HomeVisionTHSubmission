@@ -11,8 +11,8 @@ POST /detect   (multipart, field "image")
 
 ```bash
 uv sync
-uv run fastapi run main.py        # API on http://localhost:8000, interactive docs at /docs
-uv run pytest                     # accuracy report
+uv run fastapi run main.py    # API on http://localhost:8000
+uv run pytest                 # accuracy report
 ```
 
 Both models are loaded at startup, in `main.py`'s lifespan, so the first request is as fast as the rest.
