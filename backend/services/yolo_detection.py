@@ -8,7 +8,7 @@ from ultralytics import YOLO
 
 MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "checkbox_yolo.pt"
 IMGSZ = 1280  # checkboxes are only a few dozen pixels, downscaling the page would lose them
-CONF = 0.25
+CONF = 0.39  # maximizes F1 on the training dataset's validation split
 
 
 class DetectionService:

@@ -51,3 +51,5 @@ The suites are report-only on purpose. A test fails only if the data is broken o
 - **Classification**: the classifier is fed the *labelled* boxes, not the detector's output, so a detection miss doesn't show up as a classification error. I report accuracy, plus precision and recall for the "checked" class, because the labels are skewed (~68% unchecked) and accuracy alone flatters a classifier that always says "unchecked". Ambiguous boxes are excluded because there is no right answer for them.
 
 `notebooks/test.ipynb` complements this by running the full pipeline through the route, the way a client would, and drawing every hit, miss and false positive on the page.
+
+The four challenge pages are too few to judge a model on, and I used them to make decisions. So `notebooks/yolo.ipynb` and `notebooks/cnn.ipynb` each end by scoring their saved model once on its dataset's held-out test split: F1 0.928 for the detector and 0.945 for the classifier. The root README has the full numbers.

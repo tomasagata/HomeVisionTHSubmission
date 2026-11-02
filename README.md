@@ -19,6 +19,19 @@ POST /detect   (multipart/form-data, field "image")
 
 ## Running it
 
+### Try it online!
+
+A hosted version is available
+ * frontend: http://54.242.163.45:4173/ # <- this one has a cool UI
+ * backend: http://54.242.163.45:8000/
+
+You can try out online by cloning this repo and then doing a curl with
+
+```sh
+curl -F image=@backend/tests/data/fullres/images/canvas1.png http://54.242.163.45:4173/detect
+```
+
+
 ### With Docker (everything)
 
 ```bash
@@ -80,7 +93,16 @@ I tried a pretrained Hugging Face checkbox classifier first. It was trained on w
 
 ## Results
 
-Measured on the four pages from the challenge PDF, which I labelled in Label Studio (288 checkboxes per set). `fullres` has the pages at original resolution and `lowres` at roughly a third of that. A detection counts as correct at IoU ≥ 0.5.
+**On each model's held-out test split.** Each training notebook ends by scoring its saved model once on its dataset's test split. Neither training nor my tuning saw these pages or crops.
+
+| Model | Test set | Precision | Recall | F1 | Other |
+|---|---|---|---|---|---|
+| YOLO detector (`yolo.ipynb`) | 204 pages, 2,308 boxes | 0.930 | 0.927 | 0.928 | mAP50 0.947, mAP50-95 0.590 |
+| CNN classifier (`cnn.ipynb`), "checked" as positive | 400 crops | 0.984 | 0.910 | 0.945 | accuracy 0.948 |
+
+Ultralytics reports detector precision and recall at the confidence that maximizes F1, not at the 0.25 the API uses. The classifier's errors lean one way: 18 checked crops were called unchecked, against 3 the other way round.
+
+**On the challenge pages.** Measured on the four pages from the challenge PDF, which I labelled in Label Studio (288 checkboxes per set). `fullres` has the pages at original resolution and `lowres` at roughly a third of that. A detection counts as correct at IoU ≥ 0.5.
 
 | | `fullres` | `lowres` |
 |---|---|---|
@@ -103,7 +125,7 @@ On my desktop CPU (AMD Ryzen 7 5700), a request takes about 0.2 s for a low-reso
 
 ## Known limitations
 
-- **The evaluation set is tiny and not independent.** It's four pages, and I used them to make decisions such as image size, confidence threshold and the resize fix. The numbers above are optimistic, and I'd expect them to drop on unseen forms.
+- **The evaluation set is tiny and not independent.** It's four pages, and I used them to make decisions such as image size, confidence threshold and the resize fix. The challenge-page numbers are optimistic, and I'd expect them to drop on unseen forms. The test-split scores (F1 0.928 for detection, 0.945 for classification) are the more honest estimate, though those datasets aren't the target forms either.
 - **The labels are mine.** Some boxes are genuinely ambiguous. Those count for detection but are excluded from classification.
 - **Images only.** PDFs and multi-page documents aren't accepted. The client has to rasterize pages first.
 - **No deskewing or rotation handling.** `backend/services/preprocessing.py` has a deskew step, but it isn't wired into the API, and I haven't tested the pipeline on skewed or rotated scans.
