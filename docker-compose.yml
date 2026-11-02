@@ -2,7 +2,7 @@ services:
   backend:
     build: ./backend
     expose:
-      - "8000"
+      - "8000:8000"
     restart: unless-stopped
     mem_limit: 4g
     pids_limit: 256
