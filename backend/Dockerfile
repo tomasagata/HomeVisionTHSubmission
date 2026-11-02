@@ -14,10 +14,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-# Install the runtime deps from pyproject.toml, pinned to the base image's torch
-# so pip never reinstalls it. torch lives in the system Python, hence --break-system-packages.
-COPY pyproject.toml .
-RUN uv sync
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
 
 COPY . .
 

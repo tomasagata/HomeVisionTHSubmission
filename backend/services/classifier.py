@@ -55,14 +55,15 @@ class CheckboxClassifierService:
         self.model.eval()
 
     def classify_checkboxes(self, gray: np.ndarray, bboxes: list[list[int]]) -> list[Checkbox]:
+        """Takes [x, y, w, h] boxes (as the detector returns them), returns them as API corners [x1, y1, x2, y2]."""
         if not bboxes:
             return []
         batch = torch.stack([preprocess(crop(gray, bbox)) for bbox in bboxes])
         with torch.inference_mode():
             checked = self.model(batch) > 0
         return [
-            Checkbox(bbox=list(bbox), is_checked=bool(is_checked))
-            for bbox, is_checked in zip(bboxes, checked, strict=True)
+            Checkbox(bbox=[x, y, x + w, y + h], is_checked=bool(is_checked))
+            for (x, y, w, h), is_checked in zip(bboxes, checked, strict=True)
         ]
 
 
