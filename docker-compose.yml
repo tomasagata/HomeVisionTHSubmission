@@ -4,6 +4,11 @@ services:
     expose:
       - "8000"
     restart: unless-stopped
+    mem_limit: 4g
+    pids_limit: 256
+    read_only: true
+    tmpfs:
+      - /tmp
 
   frontend:
     build: ./frontend

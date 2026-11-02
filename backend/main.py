@@ -2,9 +2,13 @@ from contextlib import asynccontextmanager
 
 import numpy as np
 from fastapi import FastAPI
+from middlewares.file_size import MaxBodySizeMiddleware
+from routes.detection import MAX_FILE_SIZE
 from routes.detection import router as detection_router
 from services.classifier import get_classifier_service
 from services.yolo_detection import IMGSZ, get_detection_service
+
+MAX_BODY_SIZE = MAX_FILE_SIZE + 64 * 1024  # room for the multipart boundaries and part headers
 
 
 @asynccontextmanager
@@ -19,4 +23,5 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(MaxBodySizeMiddleware, max_size=MAX_BODY_SIZE)
 app.include_router(detection_router)

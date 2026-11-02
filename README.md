@@ -13,7 +13,7 @@ POST /detect   (multipart/form-data, field "image")
 }
 ```
 
-`bbox` is `[x1, y1, x2, y2]`, the top-left and bottom-right corners in pixels of the uploaded image. A file that can't be decoded as an image gets a `400`.
+`bbox` is `[x1, y1, x2, y2]`, the top-left and bottom-right corners in pixels of the uploaded image. A file that can't be decoded as a PNG, JPEG, BMP or TIFF gets a `400`. Uploads over 10 MB or 50 megapixels get a `413`, and so does anything else rejected before it's decoded. If 4 requests are already waiting for the model, new ones get a `503`.
 
 [NOTES.md](NOTES.md) is the chronological log of how I got here: what I tried, what didn't work and why I changed course. This README is the summary.
 
@@ -22,13 +22,13 @@ POST /detect   (multipart/form-data, field "image")
 ### Try it online!
 
 A hosted version is available
- * frontend: http://54.242.163.45:4173/ # <- this one has a cool UI
+ * frontend: http://54.242.163.45:4173/ <- this one has a cool UI :)
  * backend: http://54.242.163.45:8000/
 
 You can try out online by cloning this repo and then doing a curl with
 
 ```sh
-curl -F image=@backend/tests/data/fullres/images/canvas1.png http://54.242.163.45:4173/detect
+curl -F image=@backend/tests/data/fullres/images/canvas1.png http://54.242.163.45:8000/detect
 ```
 
 
@@ -121,24 +121,27 @@ On my desktop CPU (AMD Ryzen 7 5700), a request takes about 0.2 s for a low-reso
 - **Two stages instead of one detector with checked/unchecked classes.** A single YOLO model with two classes would be simpler to serve. Keeping them apart lets me evaluate each stage on its own, retrain the cheap classifier without touching the detector, and keep my definition of "checked" in one place. It also means I don't depend on how the detection dataset happened to label checked boxes. The cost is a second model and a second pass over the crops, which is negligible next to YOLO.
 - **CPU-only inference.** I wanted this to run on an ordinary VM without a GPU. A small YOLO variant at 1280 px is the compromise: the nano model missed small boxes, and the medium one was too slow to train on my hardware.
 - **Report-only tests.** The test suite prints precision, recall and accuracy per image and per dataset instead of asserting thresholds. With 4 pages, a hard threshold would be either meaningless or flaky. Adding a labelled dataset folder under `backend/tests/data/` adds it to the report with no code changes.
+- **One inference at a time.** The model runs in a worker thread so the event loop stays free, but only one request at a time uses it. The YOLO instance isn't thread-safe, and a single inference already uses every core, so running them in parallel wouldn't make anything faster. Up to 4 requests can wait. Beyond that the API returns `503` right away rather than letting uploads pile up in memory.
 - **Frontend proxy instead of CORS.** The frontend calls `/api` on its own origin and Vite proxies it to the backend, so the API doesn't need CORS configuration.
 
 ## Known limitations
 
-- **The evaluation set is tiny and not independent.** It's four pages, and I used them to make decisions such as image size, confidence threshold and the resize fix. The challenge-page numbers are optimistic, and I'd expect them to drop on unseen forms. The test-split scores (F1 0.928 for detection, 0.945 for classification) are the more honest estimate, though those datasets aren't the target forms either.
+- **The pytest set is tiny and not independent.** It's four pages, and I used them to make decisions such as image size, confidence threshold and the resize fix. The challenge-page numbers are optimistic, and I'd expect them to drop on unseen forms. The test-split scores (F1 0.928 for detection, 0.945 for classification) are the more honest estimate.
 - **The labels are mine.** Some boxes are genuinely ambiguous. Those count for detection but are excluded from classification.
 - **Images only.** PDFs and multi-page documents aren't accepted. The client has to rasterize pages first.
 - **No deskewing or rotation handling.** `backend/services/preprocessing.py` has a deskew step, but it isn't wired into the API, and I haven't tested the pipeline on skewed or rotated scans.
-- **Fixed thresholds and no confidence in the response.** The detector uses a fixed confidence of 0.25, and the classifier uses a logit threshold of 0. The response only has a boolean, so a client can't separate "clearly checked" from "barely".
+- **Fixed thresholds and no confidence in the response.** The classifier uses a logit threshold of 0. The response only has a boolean, so a client can't separate "clearly checked" from "barely".
 - **Very small boxes on very large pages.** Every page is shrunk to 1280 px on its long side. On a large page, a box that's only a few pixels wide can disappear.
-- **Not hardened for production.**
-  - There's no upload size limit, authentication or rate limiting, and the whole upload is read into memory.
-  - Inference runs inside an `async` handler, so a slow request blocks the event loop for every other request.
+- **Only partly hardened for production.** The API rejects oversized bodies while they're still arriving, checks the pixel count from the image header before decoding anything (so a small compressed file can't inflate to gigabytes of memory), and limits how many requests can queue. The backend container is read-only, with memory and process limits. Still missing:
+  - There's no authentication and no rate limiting.
+  - Everything is served over plain HTTP, and `vite preview` isn't meant to be a production server.
+  - Port 8000 on the hosted instance is public. That's only there for the `curl` example, since the frontend reaches the backend over the compose network.
+  - When the backend rejects an oversized upload early, the Vite proxy reports a `502` instead of passing through the `413`. Requests sent straight to the backend get the `413`.
 
 ## What I'd do next
 
 1. Label a larger, independent set of real appraisal pages (skewed, photographed, faxed), and measure on that before tuning anything else.
-2. Move inference off the event loop: a sync handler or a worker pool, plus a request size limit.
+2. Put a real reverse proxy (e.g. Caddy) in front, for HTTPS, rate limiting and a body-size limit at the edge, and stop exposing port 8000.
 3. Return a confidence per box, and accept PDFs by rasterizing each page server-side.
 4. Wire deskewing in, and retrain the detector with rotation and scan-noise augmentation.
 5. Export the models to ONNX to drop PyTorch from the runtime image.
