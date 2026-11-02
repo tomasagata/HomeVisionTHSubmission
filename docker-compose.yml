@@ -1,0 +1,16 @@
+services:
+  backend:
+    build: ./backend
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "4173:4173"
+    environment:
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped

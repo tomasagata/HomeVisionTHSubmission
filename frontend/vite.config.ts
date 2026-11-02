@@ -4,7 +4,7 @@ import { defineConfig } from 'vite'
 // The backend has no CORS, so the browser talks to it through this proxy instead
 const proxy = {
   '/api': {
-    target: 'http://localhost:8000',
+    target: process.env.BACKEND_URL ?? 'http://localhost:8000',
     changeOrigin: true,
     rewrite: (path: string) => path.replace(/^\/api/, ''),
   },

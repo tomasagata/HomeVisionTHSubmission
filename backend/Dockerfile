@@ -2,7 +2,8 @@ FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    YOLO_CONFIG_DIR=/tmp/Ultralytics
+    YOLO_CONFIG_DIR=/tmp/Ultralytics \
+    PATH="/app/.venv/bin:$PATH"
 
 # opencv-python (pulled in by ultralytics) needs libGL and glib at import time
 RUN apt-get update \
