@@ -2,6 +2,8 @@
 
 Here are some notes that i made while doing this assessment. Mostly to explain my progress and decisions.
 
+This page is kept as-is on purpose. This page reflects every choice and decision I made with my own words, not those from an AI.
+
 # Timeline
 
 1. First I wanted to lay the basic codebase structure. Create the web server, routes and services. A structure like any other DI project available. 
