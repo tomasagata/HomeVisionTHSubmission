@@ -1,5 +1,10 @@
 """Every test/data/<dataset>/annotations.json is discovered automatically and each image becomes
 one test case. Tests record their metrics in a shared Report, printed as a summary at the end."""
+import os
+
+# Ultralytics pip-installs missing optional packages at runtime; tests must fail instead of quietly installing them.
+os.environ["YOLO_AUTOINSTALL"] = "false"
+
 from collections import defaultdict
 from functools import reduce
 

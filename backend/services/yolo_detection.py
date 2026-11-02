@@ -25,7 +25,8 @@ class DetectionService:
         height, width = gray.shape
         scale = min(1.0, IMGSZ / max(height, width))
         if scale < 1:
-            gray = cv2.resize(gray, (round(width * scale), round(height * scale)), interpolation=cv2.INTER_AREA)
+            # max(1, ...): on very thin pages (e.g. 4000x1) the short side would otherwise round to 0, which cv2 rejects
+            gray = cv2.resize(gray, (max(1, round(width * scale)), max(1, round(height * scale))), interpolation=cv2.INTER_AREA)
         result = self.model.predict(cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR), imgsz=IMGSZ, conf=CONF, verbose=False)[0]
         return [[round(x1 / scale), round(y1 / scale), round((x2 - x1) / scale), round((y2 - y1) / scale)]
                 for x1, y1, x2, y2 in result.boxes.xyxy.tolist()]

@@ -1,8 +1,12 @@
 FROM python:3.13-slim
 
+# YOLO_AUTOINSTALL/YOLO_OFFLINE: Ultralytics would otherwise pip-install missing packages at request time,
+# and send usage analytics
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     YOLO_CONFIG_DIR=/tmp/Ultralytics \
+    YOLO_AUTOINSTALL=false \
+    YOLO_OFFLINE=true \
     OPENCV_IO_MAX_IMAGE_PIXELS=50000000 \
     PATH="/app/.venv/bin:$PATH"
 

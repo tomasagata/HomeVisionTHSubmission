@@ -3,6 +3,8 @@ import struct
 import zlib
 from pathlib import Path
 
+import cv2
+import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
@@ -54,6 +56,24 @@ def test_too_many_pixels(client, side):
 def test_not_an_image(client):
     response = client.post("/detect", files={"image": ("fake.png", b"definitely not a png", "image/png")})
     assert response.status_code == 400
+
+
+@pytest.mark.parametrize("name, data", [
+    ("empty", b""),
+    ("webp", b"RIFF\x1a\x00\x00\x00WEBPVP8 \x0e\x00\x00\x00"),
+    ("gif", b"GIF89a\x01\x00\x01\x00\x00\x00\x00;"),
+    ("pdf", b"%PDF-1.4\n%%EOF"),
+])
+def test_unsupported_format(client, name, data):
+    response = client.post("/detect", files={"image": (name, data, "image/png")})
+    assert response.status_code == 400
+
+
+@pytest.mark.parametrize("width, height", [(4000, 1), (1, 4000), (20000, 2)])
+def test_extreme_aspect_ratio(client, width, height):
+    image = cv2.imencode(".png", np.full((height, width), 255, np.uint8))[1].tobytes()
+    response = client.post("/detect", files={"image": ("thin.png", image, "image/png")})
+    assert response.status_code == 200
 
 
 def test_undecodable_image(client):
